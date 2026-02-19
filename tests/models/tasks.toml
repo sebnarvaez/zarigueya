@@ -1,0 +1,26 @@
+
+name = "task"
+namep = "tasks"
+
+[options]
+
+default_str_length = 50
+
+[[props]]
+
+name = "nombre"
+type = "string"
+optional = false
+dummy_method = "sentence"
+dummy_args = {nb_words = 6}
+
+[[props]]
+
+name = "descripcion"
+type = "string"
+dummy_method = "text"
+
+[[props]]
+
+name = "hecho"
+type = "bool"

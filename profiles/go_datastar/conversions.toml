@@ -1,0 +1,9 @@
+[sql]
+int     = "INTEGER"
+uint    = "INTEGER"
+int64   = "INTEGER"
+uint64  = "INTEGER"
+bool    = "BOOLEAN"
+float64 = "REAL"
+float32 = "REAL"
+string  = "TEXT"

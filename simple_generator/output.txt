@@ -1,0 +1,76 @@
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem(['Nombre', '1'], widgetItem);
+    widgetItem->setText("['Cedula', '0']");
+

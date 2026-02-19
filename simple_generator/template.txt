@@ -1,0 +1,3 @@
+    widgetItem = new QTableWidgetItem();
+    tableWidget->setHorizontalHeaderItem({1}, widgetItem);
+    widgetItem->setText("{0}");

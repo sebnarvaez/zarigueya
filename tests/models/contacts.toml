@@ -1,0 +1,85 @@
+name = "contact"
+namep = "contacts"
+
+[options]
+
+default_str_length = 50
+
+[[props]]
+
+name = "nombres"
+type = "string"
+optional = false
+dummy_method = "first_name"
+
+[[props]]
+
+name = "apellidos"
+type = "string"
+dummy_method = "last_name"
+
+[[props]]
+
+name = "tipo_id"
+type = "string"
+optional = false
+valid_values = ["CC", "NIT", "TI", "CE"]
+
+[[props]]
+
+name = "num_id"
+type = "string"
+optional = "n"
+long = 10
+dummy_method = "numerify"
+dummy_args = {string = "##########"}
+
+[[props]]
+
+name = "telefonos"
+type = "string"
+long = 10
+dummy_method = "numerify"
+dummy_args = {string = "##########"}
+
+[[props]]
+
+name = "direccion"
+type = "string"
+dummy_method = "address"
+
+[[props]]
+
+name = "ciudad"
+type = "string"
+dummy_method = "city"
+
+[[props]]
+
+name = "email"
+type = "string"
+dummy_method = "email"
+
+[[props]]
+
+name = "webs"
+type = "string"
+dummy_method = "domain_name"
+
+[[props]]
+
+name = "notas"
+type = "string"
+dummy_method = "sentence"
+
+[[props]]
+
+name = "es_distribuidor"
+type = "bool"
+optional = false
+
+[[props]]
+
+name = "es_cliente"
+type = "bool"
+optional = false
