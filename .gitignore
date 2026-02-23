@@ -1,4 +1,5 @@
 pruebas.py
+output/
 
 # Python compiled
 __pycache__/
@@ -46,5 +47,5 @@ cover/
 
 
 # Editor
-.vscode
+.vscode/
 
