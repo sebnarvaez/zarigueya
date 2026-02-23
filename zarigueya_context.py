@@ -2,6 +2,7 @@ import os
 import re
 import utils
 from mako.lookup import TemplateLookup
+from os.path import join as pjoin
 
 class ZarigueyaContext:
     def __init__(self, tmplts_path: str, models_path: str, out_path: str, profile_path: str, use_case_funcs: bool = True):

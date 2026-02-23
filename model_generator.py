@@ -4,8 +4,11 @@ import tomllib
 import re
 import argparse
 import utils
+import shutil
 from zarigueya_context import ZarigueyaContext
+from zarigueya_context import load_default_context
 from mako.template import Template
+from mako import exceptions
 from os.path import join as pjoin
 
 # Variable references com in the style ${var}
@@ -108,10 +111,10 @@ def apply_templates(ctx: ZarigueyaContext):
         # infile_path is its full path.
         infile_path = pjoin(ctx.current_inpath, infile_name)
         # Non-template files are just copied
-        if not infile_name.contains('.tmplt'):
+        if '.tmplt' not in infile_name:
             shutil.copy2(
                 infile_path,
-                out_path)
+                ctx.current_outpath)
             continue
         
         # Process files/folders that apply to all properties
@@ -161,7 +164,7 @@ def apply_templates(ctx: ZarigueyaContext):
                 }
                 outfile_name = get_filename(rem, infile_name, tmplt_params)
                 
-                create_file_or_folder(ctx, infile_path, outfile_name, tmplt_params)
+                create_file_or_folder(ctx, infile_name, outfile_name, tmplt_params)
                 file_ready = True
         
         if not file_ready:
@@ -172,7 +175,7 @@ def apply_templates(ctx: ZarigueyaContext):
             }
             outfile_name = get_filename(rem, infile_name, tmplt_params)
             
-            create_file_or_folder(ctx, infile_path, outfile_name, tmplt_params)
+            create_file_or_folder(ctx, infile_name, outfile_name, tmplt_params)
             
 def create_file_or_folder(ctx: ZarigueyaContext, infile_path: str, outfile_name: str, tmplt_params: dict):
     outfile_path = pjoin(ctx.current_outpath, outfile_name)
@@ -181,7 +184,10 @@ def create_file_or_folder(ctx: ZarigueyaContext, infile_path: str, outfile_name:
     if os.path.isfile(infile_full_path):
         with open(outfile_path, 'w') as f:
             mytemplate = ctx.lookup.get_template(infile_path)
-            f.write(mytemplate.render(**tmplt_params))
+            try:
+                f.write(mytemplate.render(**tmplt_params))
+            except:
+                print(exceptions.text_error_template().render())
     else:
         os.makedirs(outfile_path)
         ctx.current_inpath = infile_path
@@ -190,11 +196,11 @@ def create_file_or_folder(ctx: ZarigueyaContext, infile_path: str, outfile_name:
 
 if __name__ == "__main__":
 
-    # args = setup_cmd_parser()
-    # ctx = context_from_cmd()
-    ctx = utils.load_default_context()
+    args = setup_cmd_parser()
+    ctx = context_from_cmd(args)
+    #ctx = load_default_context()
 
-    if not os.path.exists(out_path):
-        os.makedirs(out_path)
+    if not os.path.exists(ctx.out_path):
+        os.makedirs(ctx.out_path)
     
     apply_templates(ctx)
