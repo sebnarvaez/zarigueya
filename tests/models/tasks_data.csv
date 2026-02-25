@@ -1,0 +1,3 @@
+nombre,descripcion,hecho
+Template db seed,Terminar el template para hacer el seeding the la BD de acuerdo a los archivos *_data.csv y los datos dummies.,0
+Agregar validaciones a Create Table,Validaciones segun campo del modelo valid_values,0
