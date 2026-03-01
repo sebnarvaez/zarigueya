@@ -54,10 +54,14 @@ def setup_cmd_parser() -> argparse.Namespace:
                             "Note that the provided template should support whatever other " +
                             "options you choose.")
 
+    parser.add_argument('-d', '--data_path',
+                        help="Path of the data files (.csv). Use one data file per model, " +
+                            "and make it have the same name as the .toml model file. ")
+
     parser.add_argument('-e', '--exclude_files', action='store_true',
                         help="Template files that will be excluded.")
                     
-    parser.add_argument('-d', '--gen_data', action='store_true',
+    parser.add_argument('-g', '--gen_data', action='store_true',
                         help="Whether to generate dummy data. Uses the dummy tag of the " +
                             "field properties.")
 
@@ -79,21 +83,22 @@ Create a Zarigueya Context from the command line arguments.
 def context_from_cmd(args: argparse.Namespace) -> ZarigueyaContext:
     
     tmplts_path = args.templates_path
+    data_path = args.data_path
     # If no template is provided, use the default
-    if tmplts_path == None:
+    if tmplts_path is None:
         tmplts_path = pjoin(os.path.dirname(os.path.realpath(__file__)), "templates")
-
-    model_data = {}
+    if data_path is None:
+        data_path = ''
 
     models_path = args.models_details
     out_path = args.outpath
     profile_path = args.profile
     use_case_funcs = not args.no_case_funcs
 
-    if out_path == None:
+    if out_path is None:
         out_path = pjoin(input_path, 'output')
 
-    return ZarigueyaContext(tmplts_path, models_path, out_path, profile_path, use_case_funcs)
+    return ZarigueyaContext(models_path, tmplts_path, data_path, out_path, profile_path, use_case_funcs)
 
 """
 Find templates and process them.

@@ -5,10 +5,10 @@ from mako.lookup import TemplateLookup
 from os.path import join as pjoin
 
 class ZarigueyaContext:
-    def __init__(self, tmplts_path: str, models_path: str, data_path: str, out_path: str, profile_path: str, use_case_funcs: bool = True):
+    def __init__(self, models_path: str, tmplts_path: str, data_path: str, out_path: str, profile_path: str, use_case_funcs: bool = True):
         self.tmplts_path = tmplts_path
         self.out_path = out_path
-        # Current input and output relative paths
+            # Current input and output relative paths
         self.current_inpath = tmplts_path
         self.current_outpath = out_path
 
@@ -16,6 +16,7 @@ class ZarigueyaContext:
         self._models_path = models_path
         self._update_models_dict()
 
+        self.data = {}
         self._data_path = data_path
         if self.data_path != '':
             self._update_data()
@@ -65,20 +66,21 @@ class ZarigueyaContext:
     @data_path.setter
     def data_path(self, value: str):
         self._data_path = value
-        if self.data_path != '':
+        if value != '':
             self._update_data_list()
     
     def _update_data(self):
-        for file in self.models:
-            with open(f'{pjoin(self._data_path, file)}.csv', newline='') as data_file:
-                self.models[file]['data'] = csv.DictReader(data_file)
-            
-    
+        for file in os.listdir(self._data_path):
+            model_name = file[:-len('.csv')]
+            if model_name in self.models:
+                with open(f'{pjoin(self._data_path, file)}', newline='') as data_file:
+                    self.data[file] = csv.DictReader(data_file)
 
 def load_default_context() -> ZarigueyaContext:
-    tmplts_path = 'templates/go_templ_datastar'
     models_path = 'tests/example_models'
+    tmplts_path = 'templates/go_templ_datastar'
+    data_path  = 'tests/data'
     profile_path = 'profiles/go_datastar'
     out_path = pjoin(models_path, 'output')
 
-    return ZarigueyaContext(tmplts_path, models_path, out_path, profile_path)
+    return ZarigueyaContext(models_path, tmplts_path, data_path, out_path, profile_path)
