@@ -5,21 +5,20 @@ from mako.lookup import TemplateLookup
 from os.path import join as pjoin
 
 class ZarigueyaContext:
-    def __init__(self, models_path: str, tmplts_path: str, data_path: str, out_path: str, profile_path: str, use_case_funcs: bool = True):
+    def __init__(self, models_path: str, tmplts_path: str, out_path: str, profile_path: str, seeds_path: str = '', use_case_funcs: bool = True):
         self.tmplts_path = tmplts_path
         self.out_path = out_path
-            # Current input and output relative paths
+        # Current input and output relative paths
         self.current_inpath = tmplts_path
         self.current_outpath = out_path
 
+        # Dict containing the models' configuration
+        # each key is the config file name
         self.models = {}
         self._models_path = models_path
         self._update_models_dict()
-
-        self.data = {}
-        self._data_path = data_path
-        if self.data_path != '':
-            self._update_data()
+        
+        self.seeds_path = seeds_path
 
         # The current model in a loop
         self.current_model = None
@@ -59,28 +58,11 @@ class ZarigueyaContext:
             if file.endswith('.toml') and file != 'gbl.toml':
                 self.models[file[:-len('.toml')]] = utils.load_toml(self._models_path, file)
 
-    @property
-    def data_path(self):
-        return self._data_path
-    
-    @data_path.setter
-    def data_path(self, value: str):
-        self._data_path = value
-        if value != '':
-            self._update_data_list()
-    
-    def _update_data(self):
-        for file in os.listdir(self._data_path):
-            model_name = file[:-len('.csv')]
-            if model_name in self.models:
-                with open(f'{pjoin(self._data_path, file)}', newline='') as data_file:
-                    self.data[file] = csv.DictReader(data_file)
-
 def load_default_context() -> ZarigueyaContext:
     models_path = 'tests/example_models'
     tmplts_path = 'templates/go_templ_datastar'
-    data_path  = 'tests/data'
+    seeds_path  = 'tests/seed'
     profile_path = 'profiles/go_datastar'
     out_path = pjoin(models_path, 'output')
 
-    return ZarigueyaContext(models_path, tmplts_path, data_path, out_path, profile_path)
+    return ZarigueyaContext(models_path, tmplts_path, out_path, seeds_path, profile_path)
