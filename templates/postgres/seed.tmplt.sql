@@ -19,7 +19,7 @@ INSERT INTO ${gbl["project_name"]}.${pascalc(model["name"])} (
 % for row in mseed:
 ${"," if not loop.first else " "}(
     % for prop in model["props"]:
-    ${"," if not loop.first else " "}${row[prop["name"]]}--${pascalc(prop["name"])} 
+    ${"," if not loop.first else " "}'${row[prop["name"]]}'--${pascalc(prop["name"])} 
     % endfor
 )${";" if loop.last else ""}
 % endfor

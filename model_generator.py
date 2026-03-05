@@ -103,8 +103,12 @@ def context_from_cmd(args: argparse.Namespace) -> ZarigueyaContext:
     return ZarigueyaContext(models_path, tmplts_path, out_path, profile_path, data_path, use_case_funcs)
 
 def get_seed_data(seeds_path, model_name):
-    with open(f'{pjoin(seeds_path, model_name)}.csv', newline='') as seeds_file:
-        yield csv.DictReader(seeds_file)
+    seed_file_path = f'{pjoin(seeds_path, model_name)}.csv'
+    if os.path.exists(seed_file_path):
+        with open(seed_file_path, newline='') as seeds_file:
+            return list(csv.DictReader(seeds_file))
+    else:
+        return None
 
 """
 Find templates and process them.
