@@ -1,10 +1,12 @@
 #!/bin/python3
+import csv
 import os
 import tomllib
 import re
 import argparse
 import utils
 import shutil
+from functools import partial
 from zarigueya_context import ZarigueyaContext
 from zarigueya_context import load_default_context
 from mako.template import Template
@@ -54,10 +56,14 @@ def setup_cmd_parser() -> argparse.Namespace:
                             "Note that the provided template should support whatever other " +
                             "options you choose.")
 
+    parser.add_argument('-d', '--data_path',
+                        help="Path of the data files (.csv). Use one data file per model, " +
+                            "and make it have the same name as the .toml model file. ")
+
     parser.add_argument('-e', '--exclude_files', action='store_true',
                         help="Template files that will be excluded.")
                     
-    parser.add_argument('-d', '--gen_data', action='store_true',
+    parser.add_argument('-g', '--gen_data', action='store_true',
                         help="Whether to generate dummy data. Uses the dummy tag of the " +
                             "field properties.")
 
@@ -79,21 +85,30 @@ Create a Zarigueya Context from the command line arguments.
 def context_from_cmd(args: argparse.Namespace) -> ZarigueyaContext:
     
     tmplts_path = args.templates_path
+    data_path = args.data_path
     # If no template is provided, use the default
-    if tmplts_path == None:
+    if tmplts_path is None:
         tmplts_path = pjoin(os.path.dirname(os.path.realpath(__file__)), "templates")
-
-    model_data = {}
+    if data_path is None:
+        data_path = ''
 
     models_path = args.models_details
     out_path = args.outpath
     profile_path = args.profile
     use_case_funcs = not args.no_case_funcs
 
-    if out_path == None:
+    if out_path is None:
         out_path = pjoin(input_path, 'output')
 
-    return ZarigueyaContext(tmplts_path, models_path, out_path, profile_path, use_case_funcs)
+    return ZarigueyaContext(models_path, tmplts_path, out_path, profile_path, data_path, use_case_funcs)
+
+def get_seed_data(seeds_path, model_name):
+    seed_file_path = f'{pjoin(seeds_path, model_name)}.csv'
+    if os.path.exists(seed_file_path):
+        with open(seed_file_path, newline='') as seeds_file:
+            return list(csv.DictReader(seeds_file))
+    else:
+        return None
 
 """
 Find templates and process them.
@@ -101,9 +116,10 @@ Find templates and process them.
 """
 def apply_templates(ctx: ZarigueyaContext):
     # The template parameters is a dict containing the current model's
-    # parameters, the global parameters (gbl), and the type conversions (conv).
+    # parameters, its related data (data --if any), the global parameters (gbl),
+    # and the type conversions (conv).
     tmplts_params = {}
-    # Helps deciding what to do with the file
+    # Flag to prevent processing the same file twice if it matches multiple regex
     file_ready = False
     
     for infile_name in os.listdir(ctx.current_inpath):
@@ -111,7 +127,7 @@ def apply_templates(ctx: ZarigueyaContext):
         # infile_path is its full path.
         infile_path = pjoin(ctx.current_inpath, infile_name)
         # Non-template files are just copied
-        if '.tmplt' not in infile_name:
+        if os.path.isfile(infile_path) and '.tmplt' not in infile_name:
             shutil.copy2(
                 infile_path,
                 ctx.current_outpath)
@@ -155,10 +171,11 @@ def apply_templates(ctx: ZarigueyaContext):
                 raise AttributeError(f"{infile_path}: A parent folder has the properties' double-square brackets [[]] notation, which isn't allowed for models file/folders (single square-bracket []).")
 
             for model in ctx.models:
-                mdetails = utils.load_toml(ctx.models_path, model)
-                ctx.current_model = mdetails
+                mdetails = ctx.models[model]
+                ctx.current_model = model
                 tmplt_params = {
                     **mdetails, 
+                    'seed_data': get_seed_data(ctx.seeds_path, model),
                     'gbl': ctx.gbl,
                     'conv': ctx.conversions
                 }
@@ -169,7 +186,8 @@ def apply_templates(ctx: ZarigueyaContext):
         
         if not file_ready:
             tmplt_params = {
-                'models': ctx.models, 
+                'models': ctx.models,
+                'seed_data': partial(get_seed_data, ctx.seeds_path),
                 'gbl': ctx.gbl,
                 'conv': ctx.conversions
             }
