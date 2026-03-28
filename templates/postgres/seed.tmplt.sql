@@ -1,9 +1,11 @@
+\c ${gbl["project_name"]}
+
 % for mname in models:
 <% 
 model = models[mname] 
 mseed = seed_data(mname)
 %>\
-INSERT INTO ${gbl["project_name"]}.${pascalc(model["name"])} (
+INSERT INTO ${pascalc(model["name"])} (
     % for prop in model["props"]:
     ${"," if not loop.first else " "}${pascalc(prop["name"])} 
     % endfor
@@ -24,4 +26,5 @@ ${"," if not loop.first else " "}(
 )${";" if loop.last else ""}
 % endfor
 % endif
+
 % endfor
