@@ -10,38 +10,43 @@ General-purpose scaffolding for your app.
 
 ## Usage
 
-1. Create at least one file containing a model's details, which is a [TOML file](https://toml.io/en/latest) with the following structure:
+Zarigueya is built around data models, which is the source of all the information that will be used to fill the templates. Models are tied to a SQL Table, and are represented as folders containing:
+
+- A `config.toml` file with the following structure (Know more about [TOML files](https://toml.io/en/latest)):
 
 ```toml
 name = # Model name in singular.
 modelp = # Model name in plural.
 
-[[props]] # A list of objects, each of which containing:
-
-name = # Name of the property
-type = # bundled types are: ["int", "float", "bool", "string"]. Additional types can be defined in conversions.toml
-optional = # true|false (default: true). Whether the property is mandatory or optional.
-dummy_data = # true|false (default: true). Set to false if you don't want to generate fake data for this specific property, even with the app's dummy_data flag set to true.
-
-dummy_method = # (default: ""). What kind of dummy data should be generated. Must be a valid Faker method, check the Faker docs (https://faker.readthedocs.io/en/master/) to see which methods are available.
-dummy_args = # (default: {}). Map of arguments for the Faker method.
-valid_values = # (default: []). A list of valid values for this property. If empty no restrictions are assumed. If dummy_data generation is ON and this option is set,Faker's random_element will be used to generate the data.
-default_value = # Value to use if left in blank,
-
-[options] # The list of general options for the model. May be omitted if the defaults are fine for you.
-
-gen_sql = # true|false (default: true). Whether to generate sql code.
-dummy_data = # true|false (default: true). Whether to generate dummy data. Uses the **dummy_value** field of the property if available.
+# Optional parameters:
+sql_engine = postgres|sqlite # (default: postgres)
+gen_sql = true|false # (default: true). Whether to generate sql code.
+dummy_data = true|false # (default: true). Whether to generate dummy data. Uses the **dummy_value** field of the property if available.
 default_str_length = # (default: 100). Default length for the string type
 
-[data] # A list containing the Initial data for the model. Each element must specify each property from the [[properties]] list exactly once.
+[[props]] # One entry for each property of the model. Only fields with no default value are mandatory.
+
+name = # Name of the property.
+display_name = # Human readable name of the property.
+type = # The SQL data type.
+length = # The length in characters for text, or precision for numeric types.
+precision = # Only applies for numeric types.
+default_value = # (default: NULL) Value to use if left in blank.
+optional = y|n # (default: y). Whether the property is mandatory or optional.
+dummy_data = y|n # (default: y). Set to n to prevent generating fake data for this specific property, even if set to y in the general config.toml options.
+dummy_method = # (default: ""). What kind of dummy data should be generated. Must be a valid Faker method, check the Faker docs (https://faker.readthedocs.io/en/master/) to see which methods are available.
+dummy_args = # (default: {}). Map of arguments for the Faker method.
+valid_values = # (default: []). A list of valid values for this property. If empty, no restrictions are assumed. If dummy_data generation is ON and this option is set, Faker's random_element will be used to generate the data.
+
 ```
 
-2. Run `model_generator.py` with the corresponding arguments:
+- An optional `data.csv` file containing the initial data for the model. The first row is expected to have the colum names (field `name` from [[props]] in `config.toml`)
+
+Once you've defined your models, run `model_generator.py` with the corresponding arguments:
 
 ```
 positional arguments:
-  model_details         The path containing the TOML files with the models' details. There shall be one file per model, plus an optional gbl.toml file with global configuration parameters.
+  model_details         The path containing the model definitions. There shall be one folder per model, plus an optional gbl.toml file with global configuration parameters.
 
 options:
   -h, --help            show this help message and exit

@@ -1,8 +1,5 @@
 name = "contact"
 namep = "contacts"
-
-[options]
-
 default_str_length = 50
 
 [[props]]
