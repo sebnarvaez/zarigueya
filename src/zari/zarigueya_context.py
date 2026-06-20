@@ -1,6 +1,6 @@
 import os
 import re
-import utils
+from zari import utils
 from mako.lookup import TemplateLookup
 from os.path import join as pjoin
 

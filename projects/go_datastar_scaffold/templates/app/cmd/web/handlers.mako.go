@@ -1,11 +1,11 @@
 package handlers
 <%!
-from caseconverter import camelcase, pascalcase, snakecase 
+from caseconverter import camelcase, pascalcase, snake 
 %>
 
-import (
+	import (
 	"bytes"
-	"${gbl['repo_name']}/${modelname_plural}/views"
+	"${gbl['repo_name']}/${namep}/views"
 	"${gbl['repo_name']}/utils"
 	"fmt"
 	"log"

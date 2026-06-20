@@ -4,11 +4,11 @@ import os
 import tomllib
 import re
 import argparse
-import utils
 import shutil
 from functools import partial
-from zarigueya_context import ZarigueyaContext
-from zarigueya_context import load_default_context
+from zari import utils
+from zari.zarigueya_context import ZarigueyaContext
+from zari.zarigueya_context import load_default_context
 from mako.template import Template
 from mako import exceptions
 from os.path import join as pjoin
@@ -42,26 +42,31 @@ Setup the command line argumments and help.
 def setup_cmd_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog='Zarigueya', description='General-purpose scaffolding for your app.')
 
-    parser.add_argument('models_details', action='store',
-                        help="The path containing the TOML files for the models' details. " +
-                            "There shall be one file per model, plus an optional " +
-                            "gbl.toml file with global configuration parameters.")
+    parser.add_argument('models_path', action='store',
+                        help="The path containing the models' details. " +
+                            "There shall be one folder per model, containing a config.toml and " + 
+                            "an optional data.toml. Additionally, there can be a " +
+                            "gbl.toml file at the root with global configuration parameters.")
 
-    parser.add_argument('-o', '--outpath', default='models_details/output/',
-                        help="Path of the file where the generated output will be saved in." +
-                            "Defaults to model_details/output.")
+    parser.add_argument('-o', '--outpath', default='models_path/output/',
+                        help="Path of the root folder for the generated files." +
+                            "Defaults to models_path/output.")
 
     parser.add_argument('-t', '--templates_path',
                         help="Path of the model templates. Defaults to templates/. " + 
                             "Note that the provided template should support whatever other " +
                             "options you choose.")
 
-    parser.add_argument('-d', '--data_path',
-                        help="Path of the data files (.csv). Use one data file per model, " +
-                            "and make it have the same name as the .toml model file. ")
+    parser.add_argument('-i', '--include', action='store_true',
+                        help="Models to include. By default, all models in the models_path " +
+                            "are included. Can't be used combined with --exclude")
 
-    parser.add_argument('-e', '--exclude_files', action='store_true',
-                        help="Template files that will be excluded.")
+    parser.add_argument('-e', '--exclude', action='store_true',
+                        help="Models to exclude. By default, all models in the models_path " +
+                            "are included. Can't be used combined with --include")
+
+    parser.add_argument('-s', '--skip_templates', action='store_true',
+                        help="Template files to be skipped.")
                     
     parser.add_argument('-g', '--gen_data', action='store_true',
                         help="Whether to generate dummy data. Uses the dummy tag of the " +
@@ -69,13 +74,13 @@ def setup_cmd_parser() -> argparse.Namespace:
 
     parser.add_argument('-p', '--profile', default='profiles/go_datastar',
                         help="Folder containing the conversions.toml file, in which the " +
-                            " equivalent of datatypes for each used language is defined.")
+                            "equivalent of datatypes for each used language is defined.")
 
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Print replaced strings in the template")
 
     parser.add_argument('--no-case-funcs', action='store_true',
-                        help="Don't import the default helper functions in template files; Related to case conversion.")
+                        help="Don't import the default helper functions in template files related to case conversion.")
 
     return parser.parse_args()
 
@@ -84,26 +89,32 @@ Create a Zarigueya Context from the command line arguments.
 """
 def context_from_cmd(args: argparse.Namespace) -> ZarigueyaContext:
     
+    included_models = args.include
+    excluded_models = args.exclude
+    
+    if included_models is not None and excluded_models is not None:
+        raise AttributeError(f"Can't set both --include and --exclude options,")
+
     tmplts_path = args.templates_path
-    data_path = args.data_path
-    # If no template is provided, use the default
     if tmplts_path is None:
         tmplts_path = pjoin(os.path.dirname(os.path.realpath(__file__)), "templates")
-    if data_path is None:
-        data_path = ''
 
-    models_path = args.models_details
+    models_path = args.models_path
+    # Include all models in the path by default
+    if included_models is None:
+        included_models = [model for model in os.listdir(models_path) if os.path.isdir(p) and os.path.exists(pjoin(p, 'config.toml'))]
+                 
     out_path = args.outpath
-    profile_path = args.profile
-    use_case_funcs = not args.no_case_funcs
-
     if out_path is None:
         out_path = pjoin(input_path, 'output')
 
+    profile_path = args.profile
+    use_case_funcs = not args.no_case_funcs
+
     return ZarigueyaContext(models_path, tmplts_path, out_path, profile_path, data_path, use_case_funcs)
 
-def get_seed_data(seeds_path, model_name):
-    seed_file_path = f'{pjoin(seeds_path, model_name)}.csv'
+def get_seed_data(models_path, model_name):
+    seed_file_path = pjoin(models_path, model_name, 'data.csv')
     if os.path.exists(seed_file_path):
         with open(seed_file_path, newline='') as seeds_file:
             return list(csv.DictReader(seeds_file))
