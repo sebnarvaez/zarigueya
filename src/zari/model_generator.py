@@ -48,6 +48,17 @@ def setup_cmd_parser() -> argparse.Namespace:
                             "an optional data.toml. Additionally, there can be a " +
                             "gbl.toml file at the root with global configuration parameters.")
 
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument('-i', '--include', nargs='*',
+                        help="Models to include. By default, all models in the models_path " +
+                            "are included. Can't be used combined with --exclude")
+
+    group.add_argument('-e', '--exclude', nargs='*',
+                        help="Models to exclude. By default, all models in the models_path " +
+                            "are included. Can't be used combined with --include")
+
+    # Mutually exclusive group finished
     parser.add_argument('-p', '--profile', required=True,
                         help="Folder containing the conversions.toml file, in which the " +
                             "equivalent of datatypes for each used language is defined.")
@@ -55,7 +66,7 @@ def setup_cmd_parser() -> argparse.Namespace:
     parser.add_argument('-t', '--templates_path', required=True,
                         help="Path of the model templates. Note that the provided template " +
                             "should support whatever other options you choose.")
-
+                            
     parser.add_argument('-o', '--outpath', default='output/',
                         help="Path of the root folder for the generated files." +
                             "Defaults to output/.")
@@ -74,17 +85,6 @@ def setup_cmd_parser() -> argparse.Namespace:
     parser.add_argument('--no-case-funcs', action='store_true',
                         help="Don't import the default helper functions in template files related to case conversion.")
     
-    group = parser.add_mutually_exclusive_group()
-
-    group.add_argument('-i', '--include', nargs='*',
-                        help="Models to include. By default, all models in the models_path " +
-                            "are included. Can't be used combined with --exclude")
-
-    group.add_argument('-e', '--exclude', nargs='*',
-                        help="Models to exclude. By default, all models in the models_path " +
-                            "are included. Can't be used combined with --include")
-
-
     return parser.parse_args()
 
 """
@@ -127,26 +127,26 @@ def apply_templates(ctx: ZarigueyaContext):
     # The template parameters is a dict containing the current model's
     # parameters, its related data (data --if any), the global parameters (gbl),
     # and the type conversions (conv).
-    tmplts_params = {}
+    tmplt_params = {}
     # Flag to prevent processing the same file twice if it matches multiple regex
     file_ready = False
     
-    for infile_name in os.listdir(ctx.current_inpath):
-        # infile_name is the name of the file/folder.
-        # infile_path is its full path.
-        infile_path = pjoin(ctx.current_inpath, infile_name)
+    for tmplt_name in os.listdir(ctx.current_tmplt_path):
+        # tmplt_name is the name of the file/folder.
+        # tmplt_path is its full path.
+        tmplt_path = pjoin(ctx.current_tmplt_path, tmplt_name)
         # Non-template files are just copied
-        if os.path.isfile(infile_path) and '.tmplt' not in infile_name:
+        if os.path.isfile(tmplt_path) and '.tmplt' not in tmplt_name:
             shutil.copy2(
-                infile_path,
+                tmplt_path,
                 ctx.current_outpath)
             continue
         
         # Process files/folders that apply to all properties
-        rem = regex_props.search(infile_name)
+        rem = regex_props.search(tmplt_name)
         if rem:
             if ctx.current_model is None:
-                raise AttributeError(f"{infile_path}: double square-brackets notation ([[${{property}}]]) is for properties of a model, and thus is reserved for files/folders with a parent folder using single square-brackets notation ([${{model}}]).")
+                raise AttributeError(f"{tmplt_path}: double square-brackets notation ([[${{property}}]]) is for properties of a model, and thus is reserved for files/folders with a parent folder using single square-brackets notation ([${{model}}]).")
             
             if ctx.current_prop is not None:
                 raise NotImplementedError("Nested properties are not currently supported")
@@ -155,7 +155,7 @@ def apply_templates(ctx: ZarigueyaContext):
             # or an attribute of a list property (2 elements)
             prop_def = rem.group().split('.')
             if len(prop_def) < 1 or len(prop_def) > 2:
-                raise AttributeError(f"{infile_path}: property definitions must contain one or two elements (separated by a period), found {len(prop_def)}: {prop_def}")
+                raise AttributeError(f"{tmplt_path}: property definitions must contain one or two elements (separated by a period), found {len(prop_def)}: {prop_def}")
             
             prop_list = ctx.current_model[prop_def[0]]
             attr = prop_def[1] if len(prop_def == 2) else ''
@@ -166,18 +166,18 @@ def apply_templates(ctx: ZarigueyaContext):
                 if attr != '':
                     prop = prop[attr]
 
-                outfile_name = infile_name[:rem.start()] + prop + infile_name[rem.end():]
+                outfile_name = tmplt_name[:rem.start()] + prop + tmplt_name[rem.end():]
 
-                create_file_or_folder(ctx, infile_path, outfile_name, tmplt_params)
+                create_file_or_folder(ctx, tmplt_path, outfile_name, tmplt_params)
                 
             ctx.current_prop = None
             file_ready = True
 
         # Process files/folders that apply to all models
-        rem = regex_model.search(infile_name)
+        rem = regex_model.search(tmplt_name)
         if rem and not file_ready:
             if ctx.current_prop is not None:
-                raise AttributeError(f"{infile_path}: A parent folder has the properties' double-square brackets [[]] notation, which isn't allowed for models file/folders (single square-bracket []).")
+                raise AttributeError(f"{tmplt_path}: A parent folder has the properties' double-square brackets [[]] notation, which isn't allowed for models file/folders (single square-bracket []).")
 
             for model in ctx.models:
                 mdetails = ctx.models[model]
@@ -188,9 +188,9 @@ def apply_templates(ctx: ZarigueyaContext):
                     'gbl': ctx.gbl,
                     'conv': ctx.conversions
                 }
-                outfile_name = get_filename(rem, infile_name, tmplt_params)
+                outfile_name = get_filename(rem, tmplt_name, tmplt_params)
                 
-                create_file_or_folder(ctx, infile_name, outfile_name, tmplt_params)
+                create_file_or_folder(ctx, tmplt_name, outfile_name, tmplt_params)
                 file_ready = True
         
         if not file_ready:
@@ -200,24 +200,24 @@ def apply_templates(ctx: ZarigueyaContext):
                 'gbl': ctx.gbl,
                 'conv': ctx.conversions
             }
-            outfile_name = get_filename(rem, infile_name, tmplt_params)
+            outfile_name = get_filename(rem, tmplt_name, tmplt_params)
             
-            create_file_or_folder(ctx, infile_name, outfile_name, tmplt_params)
+            create_file_or_folder(ctx, tmplt_name, outfile_name, tmplt_params)
             
-def create_file_or_folder(ctx: ZarigueyaContext, infile_path: str, outfile_name: str, tmplt_params: dict):
+def create_file_or_folder(ctx: ZarigueyaContext, tmplt_path: str, outfile_name: str, tmplt_params: dict):
     outfile_path = pjoin(ctx.current_outpath, outfile_name)
-    infile_full_path = pjoin(ctx.tmplts_path, infile_path)
+    tmplt_full_path = pjoin(ctx.tmplts_path, tmplt_path)
 
-    if os.path.isfile(infile_full_path):
+    if os.path.isfile(tmplt_full_path):
         with open(outfile_path, 'w') as f:
-            mytemplate = ctx.lookup.get_template(infile_path)
+            mytemplate = ctx.lookup.get_template(tmplt_path)
             try:
                 f.write(mytemplate.render(**tmplt_params))
             except:
                 print(exceptions.text_error_template().render())
     else:
         os.makedirs(outfile_path)
-        ctx.current_inpath = infile_path
+        ctx.current_tmplt_path = tmplt_path
         ctx.current_outpath = pjoin(ctx.current_outpath, outfile_name)
         apply_templates(ctx)
 

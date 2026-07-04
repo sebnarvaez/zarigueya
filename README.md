@@ -16,7 +16,7 @@ Zarigueya is built around data models, which is the source of all the informatio
 
 ```toml
 name = # Model name in singular.
-modelp = # Model name in plural.
+namep = # Model name in plural.
 
 # Optional parameters:
 sql_engine = postgres|sqlite # (default: postgres)

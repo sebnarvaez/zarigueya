@@ -9,7 +9,7 @@ class ZarigueyaContext:
         self.tmplts_path = tmplts_path
         self.out_path = out_path
         # Current input and output relative paths
-        self.current_inpath = tmplts_path
+        self.current_tmplt_path = tmplts_path
         self.current_outpath = out_path
 
         # Include all models in the path by default
