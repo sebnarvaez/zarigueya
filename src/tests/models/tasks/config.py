@@ -1,4 +1,10 @@
+import sys
+sys.path.append('/home/sebasnr/Documents/projects/zarigueya/src/')
+
 from zari.zari_model import ZariModel, ZariProp
+from faker import Faker
+
+fake = Faker()
 
 config = ZariModel(
     name = "contact",
@@ -8,14 +14,14 @@ config = ZariModel(
         ZariProp(
             name = "nombre",
             type = "string",
-            optional = false,
-            dummy_method = "sentence",
+            optional = False,
+            dummy_method = fake.sentence,
             dummy_args = {"nb_words": 6}
         ),
         ZariProp(
             name = "descripcion",
             type = "string",
-            dummy_method = "text"
+            dummy_method = fake.text
         ),
         ZariProp(
             name = "hecho",

@@ -1,35 +1,19 @@
 import os
 import re
-import utils
+import importlib.util
+from zari import utils
 from mako.lookup import TemplateLookup
 from os.path import join as pjoin
 
 class ZarigueyaContext:
     def __init__(self, models_path: str, included_models: list, excluded_models: list, tmplts_path: str, out_path: str, profile_path: str, use_case_funcs: bool = True):
+        self.update_models_path(models_path, included_models, excluded_models)
+
         self.tmplts_path = tmplts_path
         self.out_path = out_path
         # Current input and output relative paths
         self.current_tmplt_path = tmplts_path
         self.current_outpath = out_path
-
-        # Include all models in the path by default
-        if included_models is None:
-            self.included_models = set()
-            for model in os.listdir(models_path):
-                model_path = pjoin(models_path, model)
-                if os.path.isdir(model_path) and os.path.exists(pjoin(model_path, 'config.toml')):
-                    self.included_models.add(model)
-        else:
-            self.included_models = set(included_models)
-        
-        if excluded_models is not None:
-            self.included_models -= set(excluded_models)
-
-        # Dict containing the models' configuration
-        # each key is the config file name
-        self.models = {}
-        self._models_path = models_path
-        self._update_models_dict()
 
         # The current model in a loop
         self.current_model = None
@@ -55,23 +39,43 @@ class ZarigueyaContext:
         else:
             self.lookup = TemplateLookup()
  
-    @property
-    def models_path(self):
-        return self._models_path
+    def update_models_path(self, models_path: str, included_models: list, excluded_models: list):
+        self._models_path = models_path
+        self._update_included_models()
+        self._update_models_list()
+
+    def _update_included_models(self, included_models: list = None, excluded_models: list = None) -> list:
+        if included_models is not None and excluded_models is not None:
+            raise AttributeError(f"Can't set both included and excluded models.")
+        # Include all models in the path by default
+        if included_models is None:
+            self.included_models = set()
+            for model in os.listdir(self._models_path):
+                model_path = pjoin(self._models_path, model)
+                if os.path.isdir(model_path) and os.path.exists(pjoin(model_path, 'config.py')):
+                    self.included_models.add(model)
+        else:
+            self.included_models = set(included_models)
+        
+        if excluded_models is not None:
+            self.included_models -= set(excluded_models)
     
-    @models_path.setter
-    def models_path(self, value: str):
-        self._models_path = value
-        self._update_models_dict()
-    
-    def _update_models_dict(self):
+    def _update_models_list(self):
+        self.models = []
         for model in self.included_models:
-            model_path = pjoin(self.models_path, model)
-            fname = pjoin(model_path, 'config.toml')
-            if os.path.exists(fname):
-                self.models[model] = utils.load_toml(fname)
-            else:
-                print(f"Can't find condig.toml for odel {model}.")
+            model_path = pjoin(self._models_path, model)
+            fpath = pjoin(model_path, 'config.py')
+            
+            spec = importlib.util.spec_from_file_location(model, fpath)
+            if spec is None:
+                raise ImportError(f" Error: Could not find a spec for model {model}")
+
+            model_module = importlib.util.module_from_spec(spec)
+            try:
+                spec.loader.exec_module(model_module)
+            except Exception as e:
+                raise ImportError(f" Error executing module for model {model}: {e}")
+            self.models.append(model_module.config)
 
 def load_default_context() -> ZarigueyaContext:
     models_path = 'tests/example_models'
