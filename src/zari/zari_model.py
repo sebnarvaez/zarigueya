@@ -1,5 +1,6 @@
 from collections.abc import Callable
-from typing import Optional, Any
+from enum import Enum
+from typing import Optional, Any, Literal
 from pydantic import BaseModel, PositiveInt
 
 class ZariModel(BaseModel):
@@ -23,3 +24,22 @@ class ZariProp(BaseModel):
     dummy_method: Optional[Callable] = None # (default: None). The method used to generate dummy data. Consider checking the Faker docs (https://faker.readthedocs.io/en/master/).
     dummy_args: Optional[dict[str, Any]] = None # (default: None). Map of arguments for dummy_method.
     validations: Optional[list] = None # (default:None). List of valid values for the model.
+    
+class ProjectConfig(BaseModel):
+    project_name: str
+    root: str # Root directory of the templates
+    out_root: str # Root directory of the output files
+    profile_path: str
+    use_case_funcs: bool = True # Wether to use casing helper functions
+    templates: list[TemplateConfig] # A list of file configurations
+
+class TemplateConfig(BaseModel):
+    path: str # Path of the template, relative to the ProjectConfig's <root>.
+    copy_mode: Literal["once", "per_model", "per_prop"] = "per_model"
+    out_name: Optional[str] = None # Output file name,
+    out_path: Optional[str] = None # Relative to the ProjectConfig's out_path. Defaults to <path>.
+
+ZariModel.model_rebuild()
+ZariProp.model_rebuild()
+ProjectConfig.model_rebuild()
+TemplateConfig.model_rebuild()

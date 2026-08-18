@@ -9,16 +9,23 @@ from functools import partial
 from zari import utils
 from zari.zarigueya_context import ZarigueyaContext
 from zari.zarigueya_context import load_default_context
+from zari.zari_model import ProjectConfig
 from mako.template import Template
 from mako import exceptions
 from os.path import join as pjoin
 
 class ModelGenerator():
-    # Variable references com in the style ${var}
+    # Variable references come in the style ${var}
     regex_var_str = r"\${.+}"
-    # Lists (of models or their properties) are referenced as []
-    regex_model = re.compile(fr"\[(|{regex_var_str})\]")
-    regex_props = re.compile(fr"\[\[(|{regex_var_str})\]\]")
+
+    def __init__(self, project_config: ProjectConfig):
+        self.project_config = project_config
+
+    @classmethod
+    def _from_toml_file(cls, config_path: str) -> ModelGenerator:
+        data = utils.load_toml(config_path)
+        config = ProjectConfig.model_validate(data)
+        return ModelGenerator(config)
 
     """
     Returns the name of the file or folder, replacing the corresponding
@@ -43,7 +50,9 @@ class ModelGenerator():
     def setup_cmd_parser(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(prog='Zarigueya', description='General-purpose scaffolding for your app.')
 
-        parser.add_argument('models_path', action='store',
+        parser.add_argument('models_path',
+                            metavar='models-path',
+                            action='store',
                             help="The path containing the models' details. " +
                                 "There shall be one folder per model, containing a config.toml and " + 
                                 "an optional data.toml. Additionally, there can be a " +
@@ -60,22 +69,21 @@ class ModelGenerator():
                                 "are included. Can't be used combined with --include")
 
         # Mutually exclusive group finished
-        parser.add_argument('-p', '--profile', required=True,
+        parser.add_argument('-p', '--profile-path', required=True,
                             help="Folder containing the conversions.toml file, in which the " +
                                 "equivalent of datatypes for each used language is defined.")
 
-        parser.add_argument('-t', '--templates_path', required=True,
-                            help="Path of the model templates. Note that the provided template " +
+        parser.add_argument('-t', '--root', required=True,
+                            help="Root of the templates. Note that the provided templates " +
                                 "should support whatever other options you choose.")
                                 
-        parser.add_argument('-o', '--outpath', default='output/',
-                            help="Path of the root folder for the generated files." +
-                                "Defaults to output/.")
+        parser.add_argument('-o', '--out-root', default='output/',
+                            help="Root folder for the generated files. Defaults to output/.")
 
-        parser.add_argument('-s', '--skip_templates', action='store_true',
+        parser.add_argument('-s', '--skip-templates', action='store_true',
                             help="Template files to be skipped.")
                         
-        parser.add_argument('-g', '--gen_data', action='store_true',
+        parser.add_argument('-g', '--gen-data', action='store_true',
                             help="Whether to generate dummy data. Uses the dummy tag of the " +
                                 "field properties.")
 
@@ -99,18 +107,23 @@ class ModelGenerator():
             print("models_path does not exist or is not a valid folder.")
             exit()
 
-        tmplts_path = args.templates_path
+        if args.root:
+            self.project_config.root = args.root
+
         included_models = args.include
         excluded_models = args.exclude
                      
-        out_path = args.outpath
-        if out_path is None:
-            out_path = pjoin(input_path, 'output')
+        self.project_config.out_root = \
+            args.out_root or\
+            self.project_config.out_root or\
+            'output'
 
-        profile_path = args.profile
-        use_case_funcs = not args.no_case_funcs
+        if args.profile_path:
+            self.project_config.profile_path = args.profile_path
 
-        return ZarigueyaContext(models_path, included_models, excluded_models, tmplts_path, out_path, profile_path, use_case_funcs)
+        self.project_config.use_case_funcs = not args.no_case_funcs
+
+        return ZarigueyaContext(models_path, self.project_config, included_models, excluded_models)
 
     def get_seed_data(self, models_path, model_name):
         seed_file_path = pjoin(models_path, model_name, 'data.csv')
@@ -125,6 +138,7 @@ class ModelGenerator():
     @param ctx: holds current state of the structure.
     """
     def apply_templates(self, ctx: ZarigueyaContext):
+        #TODO: Debug apply_templates para ver que falta en la union con ProjectConfig
         # The template parameters is a dict containing the current model's
         # parameters, its related data (data --if any), the global parameters (gbl),
         # and the type conversions (conv).

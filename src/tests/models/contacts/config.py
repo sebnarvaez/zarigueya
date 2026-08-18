@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/home/sebasnr/Documents/projects/zarigueya/src/')
 from zari.zari_model import ZariModel, ZariProp
 from faker import Faker
 

@@ -11,7 +11,7 @@ END
 % for model in models.values():
 CREATE TABLE IF NOT EXISTS ${pascalc(model["name"])} (
     % for prop in model["props"]:
-    ${"," if not loop.first else " "}${pascalc(prop["name"])} ${conv["sql"][prop["type"]]}${" NULL" if "optional" in prop and not prop["optional"] else ""}
+    ${"," if not loop.first else " "}${pascalc(prop["name"])} ${conv["sql"][prop["type"]]}${" NOT NULL" if "optional" in prop and not prop["optional"] else ""}
     % endfor
 );
 

@@ -1,30 +1,33 @@
-t_root = "templates"
+project_name = "zari_test"
+root = "templates"
+out_root = "output"
+profile_path = "profiles/go_datastar_profile"
 
-[[files]]
+[[templates]]
 
-item = "app/cmd/web/handlers.mako.go"
-copymode = "once"
+path = "app/cmd/web/handlers.mako.go"
+copy_mode = "once"
 
-[[files]]
+[[templates]]
 
-item = "app/internal/views/model_admin.mako.templ"
-oname = "${name}_admin.templ"
-copymode = "per_model"
+path = "app/internal/views/model_admin.mako.templ"
+out_name = "${name}_admin.templ"
+copy_mode = "per_model"
 
-[[files]]
+[[templates]]
 
-item = "app/internal/views/model_display.mako.templ"
-oname = "${name}_display.templ"
-copymode = "per_model"
+path = "app/internal/views/model_display.mako.templ"
+out_name = "${name}_display.templ"
+copy_mode = "per_model"
 
-[[files]]
+[[templates]]
 
-item = "app/internal/views/model_ui_builder.mako.go"
-oname = "${name}_ui_builder.go"
-copymode = "per_model"
+path = "app/internal/views/model_ui_builder.mako.go"
+out_name = "${name}_ui_builder.go"
+copy_mode = "per_model"
 
-[[files]]
+[[templates]]
 
-item = "app/models/model.mako.go"
-oname = "${name}_model.go"
-copymode = "per_model"
+path = "app/models/model.mako.go"
+out_name = "${name}_model.go"
+copy_mode = "per_model"

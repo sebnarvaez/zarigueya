@@ -6,14 +6,12 @@ from mako.lookup import TemplateLookup
 from os.path import join as pjoin
 
 class ZarigueyaContext:
-    def __init__(self, models_path: str, included_models: list, excluded_models: list, tmplts_path: str, out_path: str, profile_path: str, use_case_funcs: bool = True):
+    def __init__(self, models_path: str, project_config: ProjectConfig, included_models: list, excluded_models: list):
         self.update_models_path(models_path, included_models, excluded_models)
 
-        self.tmplts_path = tmplts_path
-        self.out_path = out_path
         # Current input and output relative paths
-        self.current_tmplt_path = tmplts_path
-        self.current_outpath = out_path
+        self.current_tmplt_path = project_config.root
+        self.current_outpath = project_config.out_root
 
         # The current model in a loop
         self.current_model = None
@@ -24,11 +22,11 @@ class ZarigueyaContext:
         
         # Load general toml config files
         self.gbl = utils.load_toml(models_path, 'gbl')
-        self.conversions = utils.load_toml(profile_path)
+        self.conversions = utils.load_toml(project_config.profile_path)
 
-        if use_case_funcs:
+        if project_config.use_case_funcs:
             self.lookup = TemplateLookup(
-                tmplts_path,
+                project_config.root,
                 imports=[
                     'from caseconverter import camelcase as camelc',
                     'from caseconverter import pascalcase as pascalc',
